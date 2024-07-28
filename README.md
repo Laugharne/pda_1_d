@@ -2,53 +2,53 @@
 
 ## Overview
 
-Just a basic Anchor project with educational purpose, to sse how to manage **indexed PDA** (*Rust and Typescript*).
+Just a very basic Anchor project with educational purpose, created as a reminder to see how to manage **indexed PDA** (*Rust and Typescript*).
 
 **PDA definition (Rust):**
 ```rust
 #[account]
 pub struct Pda {
-	pub index: u16,
+    pub index: u16,
 }
 
 #[derive(Accounts)]
 pub struct PdaCreate<'info> {
 
-	#[account(
-		init,
-		seeds = [
-			b"1D".as_ref(),
-			main.index.to_le_bytes().as_ref(),
-		],
-		bump,
-		payer = signer,
-		space = size_of::<Pda>() + 8
-	)]
-	pub pda: Account<'info, Pda>,
+    #[account(
+        init,
+        seeds = [
+            b"1D".as_ref(),
+            main.index.to_le_bytes().as_ref(),
+        ],
+        bump,
+        payer = signer,
+        space = size_of::<Pda>() + 8
+    )]
+    pub pda: Account<'info, Pda>,
 
-	#[account(mut)]
-	pub main: Account<'info, Main>,
+    #[account(mut)]
+    pub main: Account<'info, Main>,
 
-	#[account(mut)]
-	pub signer: Signer<'info>,
+    #[account(mut)]
+    pub signer: Signer<'info>,
 
-	pub system_program: Program<'info, System>,
+    pub system_program: Program<'info, System>,
 }
 ```
 
 **Rust:**
 ```rust
 pub fn pda_create(ctx: Context<PdaCreate>) -> Result<()> {
-	msg!("{}:{}", function!(), line!());
+    msg!("{}:{}", function!(), line!());
 
-	let main: &mut Account<Main> = &mut ctx.accounts.main;
-	let pda: &mut Account<Pda>   = &mut ctx.accounts.pda;
+    let main: &mut Account<Main> = &mut ctx.accounts.main;
+    let pda: &mut Account<Pda>   = &mut ctx.accounts.pda;
 
-	msg!("{}", main.index);
-	pda.index   = main.index;
-	main.index += 1;
+    msg!("{}", main.index);
+    pda.index   = main.index;
+    main.index += 1;
 
-	Ok(())
+    Ok(())
 }
 ```
 
@@ -57,10 +57,10 @@ pub fn pda_create(ctx: Context<PdaCreate>) -> Result<()> {
 pdaKey = await getPda1dFromIndex( program, "1D", i);
 tx     = await program.methods.pdaCreate()
 .accounts({
-	pda          : pdaKey.pubkey,
-	main         : accountMain.publicKey,
-	signer       : providerWallet.publicKey,
-	systemProgram: anchor.web3.SystemProgram.programId,
+    pda          : pdaKey.pubkey,
+    main         : accountMain.publicKey,
+    signer       : providerWallet.publicKey,
+    systemProgram: anchor.web3.SystemProgram.programId,
 }).rpc();
 ```
 
