@@ -23,10 +23,10 @@ describe("pda_1_d", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-  const providerWallet = provider.wallet;
 
-  const program     = anchor.workspace.Pda1D as Program<Pda1D>;
-  const accountMain = anchor.web3.Keypair.generate();
+  const providerWallet = provider.wallet;
+  const program        = anchor.workspace.Pda1D as Program<Pda1D>;
+  const accountMain    = anchor.web3.Keypair.generate();
 
   const NN_PDA = 3;
 
@@ -47,21 +47,21 @@ describe("pda_1_d", () => {
   });
 
 
-  it("Create PDA", async () => {
-    let pdaKey;
+  it("Create PDA and check post-creation", async () => {
+    let pda;
     let tx;
 
     for(let i = 0; i < NN_PDA; i++) {
-      pdaKey = await getPda1dFromIndex( program, "1D", i);
+      pda    = await getPda1dFromIndex( program, "1D", i);
       tx     = await program.methods.pdaCreate()
       .accounts({
-          pda          : pdaKey.pubkey,
+          pda          : pda.pubkey,
           main         : accountMain.publicKey,
           signer       : providerWallet.publicKey,
           systemProgram: anchor.web3.SystemProgram.programId,
         }).rpc();
 
-        console.log("      "+ pdaKey.pubkey);
+        console.log("      "+ pda.pubkey);
         console.log("("+i+") : https://solana.fm/tx/"+tx);
       }
       console.log("");
@@ -77,18 +77,65 @@ describe("pda_1_d", () => {
   });
 
 
-  it("PDA check post-creation", async () => {
-    let pdaKey;
+  it("PDA accounts fetch by index", async () => {
+    let pda;
     let pdaAccount;
 
     for(let i = 0; i < NN_PDA; i++) {
-      pdaKey     = await getPda1dFromIndex( program, "1D", i);
-      pdaAccount = await program.account.pda.fetch(pdaKey.pubkey);
-      console.log("    ("+ i +") "+ pdaKey.pubkey);
+      pda        = await getPda1dFromIndex( program, "1D", i);
+      pdaAccount = await program.account.pda.fetch(pda.pubkey);
+      console.log("    ("+ i +") "+ pda.pubkey);
       console.log("    pda.index  :", pdaAccount.index);
       console.log("");
     }
   });
+
+
+  it("PDA access : pda_access()", async () => {
+    let pda;
+    let pdaAccount;
+    let tx;
+
+
+    for(let i = 0; i < NN_PDA; i++) {
+      pda = await getPda1dFromIndex( program, "1D", i);
+      tx  = await program.methods.pdaAccess()
+      .accounts({
+          pda          : pda.pubkey,
+          signer       : providerWallet.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        }).rpc();
+
+        console.log("      "+ pda.pubkey);
+        console.log("("+i+") : https://solana.fm/tx/"+tx);
+
+      console.log("");
+    }
+  });
+
+
+  it("PDA access : pda_access_by_index()", async () => {
+    let pda;
+    let pdaAccount;
+    let tx;
+
+
+    for(let i = 0; i < NN_PDA; i++) {
+      pda = await getPda1dFromIndex( program, "1D", i);
+      tx  = await program.methods.pdaAccessByIndex(i)
+      .accounts({
+          pda          : pda.pubkey,
+          signer       : providerWallet.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        }).rpc();
+
+        console.log("      "+ pda.pubkey);
+        console.log("("+i+") : https://solana.fm/tx/"+tx);
+
+      console.log("");
+    }
+  });
+
 
 });
 
@@ -102,7 +149,7 @@ async function getPda1dFromIndex(
   const indexBuffer = Buffer.allocUnsafe(2);
   indexBuffer.writeUInt16LE(index, 0);
 
-  // Calculer l'adresse de la PDA
+  // Calculer l'adresse du PDA
   const [pdaPubkey, bump] = await anchor.web3.PublicKey.findProgramAddress(
     [
       Buffer.from(tag),

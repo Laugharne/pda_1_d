@@ -40,9 +40,27 @@ pub mod pda_1_d {
 		msg!("{}", main.index);
 		pda.index   = main.index;
 		main.index += 1;
-
 		Ok(())
 	}
+
+	pub fn pda_access(ctx: Context<PdaAccess>) -> Result<()> {
+		msg!("{}:{}", function!(), line!());
+
+		let pda: &mut Account<Pda>   = &mut ctx.accounts.pda;
+
+		msg!("{}", pda.index);
+		Ok(())
+	}
+
+	pub fn pda_access_by_index(ctx: Context<PdaAccessIndexParam>, index: u16) -> Result<()> {
+		msg!("{}:{}", function!(), line!());
+
+		let pda: &mut Account<Pda>   = &mut ctx.accounts.pda;
+
+		msg!("{} / {}", pda.index, index);
+		Ok(())
+	}
+
 }
 
 
@@ -91,6 +109,37 @@ pub struct PdaCreate<'info> {
 
 	#[account(mut)]
 	pub main: Account<'info, Main>,
+
+	#[account(mut)]
+	pub signer: Signer<'info>,
+
+	pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct PdaAccess<'info> {
+
+	#[account(mut)]
+	pub pda: Account<'info, Pda>,
+
+	#[account(mut)]
+	pub signer: Signer<'info>,
+
+	pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(index: u16)]
+pub struct PdaAccessIndexParam<'info> {
+
+	#[account(
+		seeds = [
+			b"1D".as_ref(),
+			index.to_le_bytes().as_ref(),
+		],
+		bump,
+	)]
+	pub pda: Account<'info, Pda>,
 
 	#[account(mut)]
 	pub signer: Signer<'info>,
