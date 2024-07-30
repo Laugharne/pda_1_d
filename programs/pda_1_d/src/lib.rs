@@ -39,6 +39,7 @@ pub mod pda_1_d {
 
 		msg!("{}", main.index);
 		pda.index   = main.index;
+		pda.bump    = ctx.bumps.pda;
 		main.index += 1;
 		Ok(())
 	}
@@ -89,6 +90,7 @@ pub struct Initialize<'info> {
 #[account]
 pub struct Pda {
 	pub index: u16,
+	pub bump:  u8,
 }
 
 #[derive(Accounts)]
@@ -119,7 +121,10 @@ pub struct PdaCreate<'info> {
 #[derive(Accounts)]
 pub struct PdaAccess<'info> {
 
-	#[account(mut)]
+	#[account(
+		// bump=pda.bump,
+		// impossible have the previous line, cause we need seeds to use bump
+	)]
 	pub pda: Account<'info, Pda>,
 
 	#[account(mut)]
@@ -137,7 +142,7 @@ pub struct PdaAccessIndexParam<'info> {
 			b"1D".as_ref(),
 			index.to_le_bytes().as_ref(),
 		],
-		bump,
+		bump=pda.bump,
 	)]
 	pub pda: Account<'info, Pda>,
 
